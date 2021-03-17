@@ -10,6 +10,8 @@ from utils import utils_logger
 from utils import utils_model
 from utils import utils_image as util
 
+import time
+
 
 """
 Spyder (Python 3.7)
@@ -45,17 +47,19 @@ by Kai Zhang (01/August/2020)
 
 
 def main():
+    start = time.time()
 
     # ----------------------------------------
     # Preparation
     # ----------------------------------------
 
-    noise_level_img = 15                 # set AWGN noise level for noisy image
+    noise_level_img = 5                 # set AWGN noise level for noisy image
     noise_level_model = noise_level_img  # set noise level for model
     model_name = 'drunet_gray'           # set denoiser model, 'drunet_gray' | 'drunet_color'
-    testset_name = 'bsd68'               # set test set,  'bsd68' | 'cbsd68' | 'set12'
+    # testset_name = 'set12'               # set test set,  'bsd68' | 'cbsd68' | 'set12'
+    testset_name = 'polar'               # set test set,  'bsd68' | 'cbsd68' | 'set12'
     x8 = False                           # default: False, x8 to boost performance
-    show_img = False                     # default: False
+    show_img = True                     # default: False
     border = 0                           # shave boader to calculate PSNR and SSIM
 
     if 'color' in model_name:
@@ -116,12 +120,14 @@ def main():
 
         img_name, ext = os.path.splitext(os.path.basename(img))
         # logger.info('{:->4d}--> {:>10s}'.format(idx+1, img_name+ext))
-        img_H = util.imread_uint(img, n_channels=n_channels)
-        img_L = util.uint2single(img_H)
+        # img_H = util.imread_uint(img, n_channels=n_channels)
+        # img_L = util.uint2single(img_H)
+        img_H = util.imread_uint16(img, n_channels=n_channels)
+        img_L = util.uint162single(img_H)
 
         # Add noise without clipping
-        np.random.seed(seed=0)  # for reproducibility
-        img_L += np.random.normal(0, noise_level_img/255., img_L.shape)
+        # np.random.seed(seed=0)  # for reproducibility
+        # img_L += np.random.normal(0, noise_level_img/255., img_L.shape)
 
         util.imshow(util.single2uint(img_L), title='Noisy image with noise level {}'.format(noise_level_img)) if show_img else None
 
@@ -140,7 +146,8 @@ def main():
         elif x8:
             img_E = utils_model.test_mode(model, img_L, mode=3)
 
-        img_E = util.tensor2uint(img_E)
+        # img_E = util.tensor2uint(img_E)
+        img_E = util.tensor2uint16(img_E)
 
         # --------------------------------
         # PSNR and SSIM
@@ -164,6 +171,8 @@ def main():
     ave_ssim = sum(test_results['ssim']) / len(test_results['ssim'])
     logger.info('Average PSNR/SSIM(RGB) - {} - PSNR: {:.2f} dB; SSIM: {:.4f}'.format(result_name, ave_psnr, ave_ssim))
 
+    elapsed_time = time.time() - start
+    print ("elapsed_time:{0}".format(elapsed_time) + "[sec]")
 
 if __name__ == '__main__':
 
