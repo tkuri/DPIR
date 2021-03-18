@@ -53,13 +53,13 @@ def main():
     # Preparation
     # ----------------------------------------
 
-    noise_level_img = 5                 # set AWGN noise level for noisy image
+    noise_level_img = 4                 # set AWGN noise level for noisy image
     noise_level_model = noise_level_img  # set noise level for model
     model_name = 'drunet_gray'           # set denoiser model, 'drunet_gray' | 'drunet_color'
     # testset_name = 'set12'               # set test set,  'bsd68' | 'cbsd68' | 'set12'
     testset_name = 'polar'               # set test set,  'bsd68' | 'cbsd68' | 'set12'
     x8 = False                           # default: False, x8 to boost performance
-    show_img = True                     # default: False
+    show_img = False                     # default: False
     border = 0                           # shave boader to calculate PSNR and SSIM
 
     if 'color' in model_name:
@@ -165,7 +165,7 @@ def main():
         # save results
         # ------------------------------------
 
-        util.imsave(img_E, os.path.join(E_path, img_name+ext))
+        util.imsave(img_E, os.path.join(E_path, img_name+'_dru'+str(noise_level_img)+ext))
 
     ave_psnr = sum(test_results['psnr']) / len(test_results['psnr'])
     ave_ssim = sum(test_results['ssim']) / len(test_results['ssim'])
